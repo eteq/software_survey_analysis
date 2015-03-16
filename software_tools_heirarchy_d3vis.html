@@ -1,6 +1,10 @@
 <html>
 <style>
 
+body {
+  margin: 0;
+}
+
 path {
   stroke: #fff;
   fill-rule: evenodd;
@@ -12,18 +16,19 @@ text {
 }
 
 div.mousehover {   
-  position: absolute;
+  position: fixed;
   top : 50%;
   text-align: center;           
   width: 'auto';                  
   height: 'auto';                 
   padding: 2px;             
   font: 18px sans-serif;        
-  background: lightsteelblue;   
+  background: lightsteelblue;
   border: 0px;      
   border-radius: 8px;           
   pointer-events: none;
   opacity: 0;
+  margin-left: 8px;
 }
 
 </style>
@@ -39,6 +44,7 @@ var d3root = {"name": "root", "children": [{"name": "python", "children": [{"nam
 var width = 1820,
     height = 1820,
     radius = Math.min(width, height) / 2;
+updateWindow();  // Resets the above variables
 
 var x = d3.scale.linear()
     .range([0, 2 * Math.PI]);
@@ -64,9 +70,11 @@ var arc = d3.svg.arc()
     .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
 
 
+var currentd = window.d3root;
 var g = svg.selectAll("g")
-  .data(partition.nodes(window.d3root))
+  .data(partition.nodes(currentd))
   .enter().append("g");
+
 
 var mousehover = d3.select("div.mousehover");
 
@@ -123,6 +131,7 @@ path.transition()
           .attr("x", function(d) { return y(d.y); });
       }
   });
+  currentd = d;
 }
 
 d3.select(self.frameElement).style("height", height + "px");
@@ -171,23 +180,31 @@ function select_text_to_show(text) {
 }
 
 function updateWindow(){
-	var w = window,
-    d = document,
-    e = d.documentElement,
-    g = d.getElementsByTagName('body')[0],
-    x = w.innerWidth || e.clientWidth || g.clientWidth,
-    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-    console.log('xy:'+x+','+y);
+  var w = window,
+  e = document.documentElement,
+  g = document.getElementsByTagName('body')[0],
+  zoom = 1.1;
 
-    width = x;
-    height = y;
-    radius = Math.min(width, height) / 2;
-    svg.attr("width", width).attr("height", height)
-    .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 10) + ")");
+  width = w.innerWidth || e.clientWidth || g.clientWidth;
+  height = w.innerHeight|| e.clientHeight|| g.clientHeight;
+
+  width = window.innerWidth;
+  height = window.innerHeight;
+  radius = Math.min(width, height) * zoom / 2;
+
+  if (typeof svg !== 'undefined'){
+    svg.attr("transform", "translate(" + width / 2 + "," + (height / 2) + ")");
+    d3.select('svg').attr("width", width).attr("height", height);
     d3.select(self.frameElement).style("height", height + "px");
+
+    // fade out all text elements
+    text.transition().attr("opacity", 0);
+
+    click(currentd);
+  }
 }
 window.onresize = updateWindow;
-updateWindow();
+
 </script>
 
 </body>
